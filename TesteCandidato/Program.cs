@@ -89,7 +89,7 @@ namespace TesteCandidato
             query = query + ",'" + jsonRetorno["ibge"] + "'";
             query = query + ",'" + jsonRetorno["gia"] + "'" + ")";
 
-            SqlConnection connection = new SqlConnection("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
+            SqlConnection connection = new SqlConnection("Data Source=(localdb)\\LocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
             SqlCommand sqlCommand = new SqlCommand(query, connection);
 
             sqlCommand.CommandType = CommandType.Text;
@@ -135,7 +135,7 @@ namespace TesteCandidato
 
 
 
-            connection = new SqlConnection("Data Source=(localdb)\\MSSQLLocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
+            connection = new SqlConnection("Data Source=(localdb)\\LocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
             sqlCommand = new SqlCommand("Select * from CEP", connection);
 
             SqlDataAdapter adapter = new SqlDataAdapter();
