@@ -4,6 +4,7 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Net;
+using System.Security.Cryptography.X509Certificates;
 
 namespace TesteCandidato
 {
@@ -180,5 +181,7 @@ namespace TesteCandidato
 
             Console.ReadLine();
         }
+
+        
     }
 }
