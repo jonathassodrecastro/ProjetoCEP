@@ -6,7 +6,7 @@ using System.Data.SqlClient;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
-namespace TesteCandidato
+namespace ProjetoCEP
 {
     class Program
     {
