@@ -1,7 +1,12 @@
+using CEPapi.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+builder.Services.AddDbContext<Contexto>(options => options.UseSqlServer("Data Source=(LocalDB)\\LOCALDB; Initial Catalog=CEP;Integrated Security=False;User ID=ADMIN;Password=123456"));
 
 var app = builder.Build();
 
