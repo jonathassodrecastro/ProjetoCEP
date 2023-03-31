@@ -3,6 +3,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Data;
 using System.Data.SqlClient;
+using System.Diagnostics.Eventing.Reader;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
 
@@ -55,17 +56,22 @@ namespace ProjetoCEP
             //    [gia]         NVARCHAR (500) NULL
             //);
 
-            string cep = Console.ReadLine();
-            string result = string.Empty;
 
             //TODO: Implementar forma de fazer o usuário poder errar várias vezes o CEP informado
             //TODO: Melhorar validação do CEP.
-            if (cep.Length > 8)
-            {
-                Console.WriteLine("CEP Inválido");
 
+            string cep;
+            string result = string.Empty;
+
+
+            do
+            {
+                Console.WriteLine("Informe um CEP válido. O CEP deve ter 8 dígitos e apenas números:");
                 cep = Console.ReadLine();
             }
+            while (!validaCep(cep));
+
+            //
 
             //Exemplo CEP 13050020
             string viaCEPUrl = "https://viacep.com.br/ws/" + cep + "/json/";
@@ -74,9 +80,18 @@ namespace ProjetoCEP
             WebClient client = new WebClient();
             result = client.DownloadString(viaCEPUrl);
 
-            //TODO: Tratar CEP Inválido.
+
 
             JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(result);
+            do
+            {
+                if (jsonRetorno != null && jsonRetorno.Count > 0)
+                {
+                    Console.WriteLine("O CEP está no formato correto, porém não é um CEP existente.");
+                }
+            } while (jsonRetorno == null || jsonRetorno.Count <= 0);
+
+
 
             //TODO: Validar CEP existente
             string query = "INSERT INTO [dbo].[CEP] ([cep], [logradouro], [complemento], [bairro], [localidade], [uf], [unidade], [ibge], [gia]) VALUES (";
@@ -113,6 +128,9 @@ namespace ProjetoCEP
             connection.Close();
             connection.Dispose();
 
+
+            Console.WriteLine();
+
             //TODO: Retornar os dados do CEP infomado no início para o usuário
 
             Console.WriteLine("Deseja visualizar todos os CEPs alguma UF? Se sim, informar UF, se não, informar sair.");
@@ -128,13 +146,6 @@ namespace ProjetoCEP
                 Console.WriteLine("UF inválida");
                 resposta = Console.ReadLine();
             }
-
-            if (resposta == "sair")
-            {
-                return;
-            }
-
-
 
             connection = new SqlConnection("Data Source=(localdb)\\LocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
             sqlCommand = new SqlCommand("Select * from CEP", connection);
@@ -181,8 +192,26 @@ namespace ProjetoCEP
             connection.Dispose();
 
             Console.ReadLine();
+
+
         }
 
-        
+        //Função para receber o CEP, validar e tratar o erro
+        public static bool validaCep(string cep)
+        {
+            if (cep.Length != 8)
+            {
+                Console.WriteLine("CEP Inválido. O CEP contém 8 dígitos.");
+                return false;
+            }
+            if (!int.TryParse(cep, out int _))
+            {
+                Console.WriteLine("CEP inválido: deve conter somente números.");
+                return false;
+            }
+            return true;
+        }
+
+
     }
 }
