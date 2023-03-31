@@ -16,45 +16,48 @@ namespace ProjetoCEP
     {
         static void Main(string[] args)
         {
-
-
-
-        
-
-            string cep;
-            string result;
-
-
+            bool sair = true;
             do
             {
-                Console.WriteLine("Informe um CEP válido. O CEP deve ter 8 dígitos e apenas números:");
-                cep = Console.ReadLine();
-            }
-            while (!validaCep(cep));
+                string cep;
+                string result;
 
-            
-            string viaCEPUrl = "https://viacep.com.br/ws/" + cep + "/json/";
-
-            //TODO: Resolver dados com caracter especial no retorno do JSON 
-            WebClient client = new WebClient();
-            result = client.DownloadString(viaCEPUrl);
-            
-            JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(trataCaracteres(result, viaCEPUrl));
-
-            //valida se um cep realmente existe ou se apenas está no formato correto
-            while (!buscaCEP(jsonRetorno))
-            {
-                Console.WriteLine("O CEP está no formato correto, porém não é um CEP existente.");
-                cep = Console.ReadLine();
-            }
+                do
+                {
+                    Console.WriteLine("Informe um CEP válido. O CEP deve ter 8 dígitos e apenas números:");
+                    cep = Console.ReadLine();
+                }
+                while (!validaCep(cep));
 
 
-            //TODO: Retornar os dados do CEP infomado no início para o usuário
+                string viaCEPUrl = "https://viacep.com.br/ws/" + cep + "/json/";
 
-            Console.WriteLine("Deseja visualizar todos os CEPs alguma UF? Se sim, informar UF, se não, informar sair.");
-            string resposta = Console.ReadLine();
+                //TODO: Resolver dados com caracter especial no retorno do JSON 
+                WebClient client = new WebClient();
+                result = client.DownloadString(viaCEPUrl);
 
-            buscaCEPporUF(resposta);
+                JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(trataCaracteres(result, viaCEPUrl));
+
+                //valida se um cep realmente existe ou se apenas está no formato correto
+                while (!buscaCEP(jsonRetorno))
+                {
+                    Console.WriteLine("O CEP está no formato correto, porém não é um CEP existente.");
+                    cep = Console.ReadLine();
+                }
+
+
+                //TODO: Retornar os dados do CEP infomado no início para o usuário
+
+                Console.WriteLine("Deseja visualizar todos os CEPs alguma UF? Se sim, informar UF, se não, digite: 'novo' para cadastrar um novo endereço.");
+                string resposta = Console.ReadLine();
+
+                buscaCEPporUF(resposta);
+
+                Console.WriteLine("Para encerrar o programa digite: sair. Para novo endereço digite qualquer tecla.");
+                string encerra = Console.ReadLine();
+
+                if (encerra == "sair") { sair = false; }
+            } while (sair);
         }
 
         //Função para receber o CEP, validar e tratar o erro
@@ -80,27 +83,56 @@ namespace ProjetoCEP
                 return false;
             }
             //TODO: Validar CEP existente
-            string query = "INSERT INTO [dbo].[CEP] ([cep], [logradouro], [complemento], [bairro], [localidade], [uf], [unidade], [ibge], [gia]) VALUES (";
-            query = query + "'" + jsonRetorno["cep"] + "'";
-            query = query + ",'" + jsonRetorno["logradouro"] + "'";
-            query = query + ",'" + jsonRetorno["complemento"] + "'";
-            query = query + ",'" + jsonRetorno["bairro"] + "'";
-            query = query + ",'" + jsonRetorno["localidade"] + "'";
-            query = query + ",'" + jsonRetorno["uf"] + "'";
-            query = query + ",'" + jsonRetorno["unidade"] + "'";
-            query = query + ",'" + jsonRetorno["ibge"] + "'";
-            query = query + ",'" + jsonRetorno["gia"] + "'" + ")";
+            string query = "SELECT * FROM [dbo].[CEP] WHERE cep = "+"'"+jsonRetorno["cep"]+"'";
 
             SqlConnection connection = new SqlConnection("Data Source=(localdb)\\LocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
             SqlCommand sqlCommand = new SqlCommand(query, connection);
-
-            sqlCommand.CommandType = CommandType.Text;
 
             try
             {
                 connection.Open();
 
-                sqlCommand.ExecuteNonQuery();
+                SqlDataReader reader = sqlCommand.ExecuteReader();
+
+                if (reader.HasRows)
+                {
+                    while(reader.Read()) {
+
+                        string endereco;
+                        string cep = reader.GetString(reader.GetOrdinal("cep"));
+                        string logradouro = reader.GetString(reader.GetOrdinal("logradouro"));
+                        string bairro = reader.GetString(reader.GetOrdinal("bairro"));
+                        string cidade = reader.GetString(reader.GetOrdinal("localidade"));
+                        string estado = reader.GetString(reader.GetOrdinal("estado"));
+
+                        endereco = $"Endereço cadastrado anteriormente: CEP:{cep} - {logradouro} - {bairro} - {cidade}/{estado}";
+                        Console.WriteLine(endereco);
+                    }
+
+                    connection.Close();
+                }
+                else {
+
+                    
+
+                    query = "INSERT INTO [dbo].[CEP] ([cep], [logradouro], [complemento], [bairro], [localidade], [uf], [unidade], [ibge], [gia]) VALUES (";
+                    query = query + "'" + jsonRetorno["cep"] + "'";
+                    query = query + ",'" + jsonRetorno["logradouro"] + "'";
+                    query = query + ",'" + jsonRetorno["complemento"] + "'";
+                    query = query + ",'" + jsonRetorno["bairro"] + "'";
+                    query = query + ",'" + jsonRetorno["localidade"] + "'";
+                    query = query + ",'" + jsonRetorno["uf"] + "'";
+                    query = query + ",'" + jsonRetorno["unidade"] + "'";
+                    query = query + ",'" + jsonRetorno["ibge"] + "'";
+                    query = query + ",'" + jsonRetorno["gia"] + "'" + ")";
+
+                    //sqlCommand = new SqlCommand(query, connection);
+
+                    sqlCommand.CommandType = CommandType.Text;
+
+                    sqlCommand.ExecuteNonQuery();
+
+                }
             }
             catch (Exception ex)
             {
@@ -110,6 +142,7 @@ namespace ProjetoCEP
                 connection.Close();
             }
 
+            
             sqlCommand.Dispose();
             connection.Close();
             connection.Dispose();
@@ -122,11 +155,10 @@ namespace ProjetoCEP
 
         public static void buscaCEPporUF(string resposta)
         {
-            if (resposta == "sair")
+            if (resposta == "novo")
             {
                 return;
             }
-
             if (resposta.Length > 2)
             {
                 Console.WriteLine("UF inválida");
