@@ -39,8 +39,6 @@ namespace ProjetoCEP
             //TODO: Resolver dados com caracter especial no retorno do JSON 
             WebClient client = new WebClient();
             result = client.DownloadString(viaCEPUrl);
-
-            ;
             
             JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(trataCaracteres(result, viaCEPUrl));
 
