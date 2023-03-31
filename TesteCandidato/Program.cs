@@ -13,11 +13,11 @@ namespace ProjetoCEP
     {
         static void Main(string[] args)
         {
-            
 
 
-            //TODO: Implementar forma de fazer o usuário poder errar várias vezes o CEP informado
-            //TODO: Melhorar validação do CEP.
+
+            //TODO: Implementar forma de fazer o usuário poder errar várias vezes o CEP informado - feito
+            //TODO: Melhorar validação do CEP. - feito
 
             string cep;
             string result = string.Empty;
@@ -30,8 +30,6 @@ namespace ProjetoCEP
             }
             while (!validaCep(cep));
 
-            //
-
             //Exemplo CEP 13050020
             string viaCEPUrl = "https://viacep.com.br/ws/" + cep + "/json/";
 
@@ -42,9 +40,50 @@ namespace ProjetoCEP
 
 
             JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(result);
-         
+
+            //valida se um cep realmente existe ou se apenas está no formato correto
+            
+            while (!buscaCEP(jsonRetorno))
+            {
+                Console.WriteLine("O CEP está no formato correto, porém não é um CEP existente.");
+                cep = Console.ReadLine();
+            }
 
 
+            //TODO: Retornar os dados do CEP infomado no início para o usuário
+
+            Console.WriteLine("Deseja visualizar todos os CEPs alguma UF? Se sim, informar UF, se não, informar sair.");
+            string resposta = Console.ReadLine();
+
+            buscaCEPporUF(resposta);
+
+
+
+
+        }
+
+        //Função para receber o CEP, validar e tratar o erro
+        public static bool validaCep(string cep)
+        {
+            if (cep.Length != 8)
+            {
+                Console.WriteLine("CEP Inválido. O CEP contém 8 dígitos.");
+                return false;
+            }
+            if (!int.TryParse(cep, out int _))
+            {
+                Console.WriteLine("CEP inválido: deve conter somente números.");
+                return false;
+            }
+            return true;
+        }
+
+        public static bool buscaCEP(JObject jsonRetorno)
+        {
+            if (jsonRetorno == null || jsonRetorno.Count <= 0)
+            {
+                return false;
+            }
             //TODO: Validar CEP existente
             string query = "INSERT INTO [dbo].[CEP] ([cep], [logradouro], [complemento], [bairro], [localidade], [uf], [unidade], [ibge], [gia]) VALUES (";
             query = query + "'" + jsonRetorno["cep"] + "'";
@@ -81,13 +120,13 @@ namespace ProjetoCEP
             connection.Dispose();
 
 
-            Console.WriteLine();
+            Console.WriteLine(jsonRetorno);
 
-            //TODO: Retornar os dados do CEP infomado no início para o usuário
+            return true;
+        }
 
-            Console.WriteLine("Deseja visualizar todos os CEPs alguma UF? Se sim, informar UF, se não, informar sair.");
-            string resposta = Console.ReadLine();
-
+        public static void buscaCEPporUF(string resposta)
+        {
             if (resposta == "sair")
             {
                 return;
@@ -99,8 +138,8 @@ namespace ProjetoCEP
                 resposta = Console.ReadLine();
             }
 
-            connection = new SqlConnection("Data Source=(localdb)\\LocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
-            sqlCommand = new SqlCommand("Select * from CEP", connection);
+            SqlConnection connection = new SqlConnection("Data Source=(localdb)\\LocalDB;Initial Catalog=CEP;Integrated Security=True;Connect Timeout=30;Encrypt=False;TrustServerCertificate=True;ApplicationIntent=ReadWrite;MultiSubnetFailover=False;");
+            SqlCommand sqlCommand = new SqlCommand("Select * from CEP", connection);
 
             SqlDataAdapter adapter = new SqlDataAdapter();
             DataSet ds = new DataSet();
@@ -144,26 +183,7 @@ namespace ProjetoCEP
             connection.Dispose();
 
             Console.ReadLine();
-
-
         }
-
-        //Função para receber o CEP, validar e tratar o erro
-        public static bool validaCep(string cep)
-        {
-            if (cep.Length != 8)
-            {
-                Console.WriteLine("CEP Inválido. O CEP contém 8 dígitos.");
-                return false;
-            }
-            if (!int.TryParse(cep, out int _))
-            {
-                Console.WriteLine("CEP inválido: deve conter somente números.");
-                return false;
-            }
-            return true;
-        }
-
 
     }
 }
