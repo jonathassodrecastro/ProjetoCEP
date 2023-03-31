@@ -56,10 +56,6 @@ namespace ProjetoCEP
             string resposta = Console.ReadLine();
 
             buscaCEPporUF(resposta);
-
-
-
-
         }
 
         //Função para receber o CEP, validar e tratar o erro
