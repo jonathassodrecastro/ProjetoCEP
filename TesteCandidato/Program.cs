@@ -4,8 +4,11 @@ using System;
 using System.Data;
 using System.Data.SqlClient;
 using System.Diagnostics.Eventing.Reader;
+using System.IO;
 using System.Net;
 using System.Security.Cryptography.X509Certificates;
+using System.Text;
+using System.Web;
 
 namespace ProjetoCEP
 {
@@ -20,7 +23,7 @@ namespace ProjetoCEP
             //TODO: Melhorar validação do CEP. - feito
 
             string cep;
-            string result = string.Empty;
+            string result;
 
 
             do
@@ -37,12 +40,11 @@ namespace ProjetoCEP
             WebClient client = new WebClient();
             result = client.DownloadString(viaCEPUrl);
 
-
-
-            JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(result);
+            ;
+            
+            JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(trataCaracteres(result, viaCEPUrl));
 
             //valida se um cep realmente existe ou se apenas está no formato correto
-            
             while (!buscaCEP(jsonRetorno))
             {
                 Console.WriteLine("O CEP está no formato correto, porém não é um CEP existente.");
@@ -179,6 +181,20 @@ namespace ProjetoCEP
             connection.Dispose();
 
             Console.ReadLine();
+        }
+
+        public static string trataCaracteres(string result, string viaCEPurl)
+        {
+            result = HttpUtility.HtmlDecode(result);
+            string url = viaCEPurl;
+
+            HttpWebRequest request = (HttpWebRequest)WebRequest.Create(url);
+            request.UserAgent = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:58.0) Gecko/20100101 Firefox/58.0";
+            HttpWebResponse response = (HttpWebResponse)request.GetResponse();
+            StreamReader reader = new StreamReader(response.GetResponseStream(), Encoding.UTF8);
+            result = reader.ReadToEnd();
+
+            return result;
         }
 
     }
