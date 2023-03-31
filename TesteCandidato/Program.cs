@@ -19,8 +19,7 @@ namespace ProjetoCEP
 
 
 
-            //TODO: Implementar forma de fazer o usuário poder errar várias vezes o CEP informado - feito
-            //TODO: Melhorar validação do CEP. - feito
+        
 
             string cep;
             string result;
@@ -33,7 +32,7 @@ namespace ProjetoCEP
             }
             while (!validaCep(cep));
 
-            //Exemplo CEP 13050020
+            
             string viaCEPUrl = "https://viacep.com.br/ws/" + cep + "/json/";
 
             //TODO: Resolver dados com caracter especial no retorno do JSON 

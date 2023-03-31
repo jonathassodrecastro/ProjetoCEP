@@ -40,3 +40,12 @@
             //    [ibge]        INT            NULL,
             //    [gia]         NVARCHAR (500) NULL
             //);
+
+                //TODO: Implementar forma de fazer o usuário poder errar várias vezes o CEP informado - feito
+            //TODO: Melhorar validação do CEP. - feito
+
+            //TODO: Resolver dados com caracter especial no retorno do JSON 
+
+             //TODO: Retornar os dados do CEP infomado no início para o usuário
+
+             //TODO: Validar CEP existente
