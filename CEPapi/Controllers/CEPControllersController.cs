@@ -5,6 +5,7 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net;
 using ProjetoCEP;
+using Microsoft.Data.SqlClient;
 
 namespace CEPapi.Controllers
 {
@@ -47,8 +48,11 @@ namespace CEPapi.Controllers
 
             JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(ManipulaCEP.trataCaracteres(result, viaCEPUrl));
 
-            ManipulaCEP.buscaCEP(jsonRetorno);
-           
+            string connectionString = _configuration.GetConnectionString("strConn");
+
+
+
+
 
 
             var cEPController = await _context.Controller.FindAsync(Cep);

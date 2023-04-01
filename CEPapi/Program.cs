@@ -5,7 +5,13 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddDbContext<Contexto>(opt =>
-    opt.UseInMemoryDatabase("TodoList"));
+    opt.UseSqlServer(context => {
+        IConfigurationRoot configuration = new ConfigurationBuilder()
+            .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+            .AddJsonFile("appsettings.json")
+            .Build();
+        string connectionString = configuration.GetConnectionString("strConn");
+    }));
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
