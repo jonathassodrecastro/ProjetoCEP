@@ -12,9 +12,9 @@ using System.Web;
 
 namespace ProjetoCEP
 {
-    class Program
+    public class ManipulaCEP
     {
-        static void Main(string[] args)
+        public static void Main(string[] args)
         {
             bool sair = true;
             do
@@ -32,7 +32,7 @@ namespace ProjetoCEP
 
                 string viaCEPUrl = "https://viacep.com.br/ws/" + cep + "/json/";
 
-                //TODO: Resolver dados com caracter especial no retorno do JSON 
+               
                 WebClient client = new WebClient();
                 result = client.DownloadString(viaCEPUrl);
 
