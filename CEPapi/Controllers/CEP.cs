@@ -14,7 +14,7 @@ namespace CEPapi.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class CEPControllersController : ControllerBase
+    public class CEP : ControllerBase
     {
         private Contexto _context;
         //private IMapper _mapper;
@@ -23,7 +23,7 @@ namespace CEPapi.Controllers
 
         ManipulaCEP manipulaCEP = new ManipulaCEP();
 
-        public CEPControllersController(Contexto context)
+        public CEP(Contexto context)
         {
             _context = context;
         }
@@ -36,7 +36,7 @@ namespace CEPapi.Controllers
         /// Este método retorna uma lista de todos os CEPs cadastrados no sistema. Caso não haja CEPs cadastrados, o método retorna uma lista vazia.
         /// </remarks>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CEP>>> GetController()
+        public async Task<ActionResult<IEnumerable<Models.CEP>>> GetController()
         {
             if (_context.CEP == null)
             {
@@ -52,7 +52,7 @@ namespace CEPapi.Controllers
         /// O CEP deve ser informado no formato XXXXXXXX apenas com os números.
         /// </remarks>
         [HttpGet("{Cep}")]
-        public async Task<ActionResult<CEP>> GetCEPController(string Cep)
+        public async Task<ActionResult<Models.CEP>> GetCEPController(string Cep)
         {
             if (_context.CEP == null)
             {
@@ -88,7 +88,7 @@ namespace CEPapi.Controllers
                 WebClient client = new WebClient();
                 string result = client.DownloadString(viaCEPUrl);
 
-                CEP jsonRetorno = JsonConvert.DeserializeObject<CEP>(ManipulaCEP.trataCaracteres(result, viaCEPUrl));
+                Models.CEP jsonRetorno = JsonConvert.DeserializeObject<Models.CEP>(ManipulaCEP.trataCaracteres(result, viaCEPUrl));
 
                 //var cepExistente = await _context.CEP.FirstOrDefaultAsync(c => c.Cep == jsonRetorno.Cep);
 
@@ -99,7 +99,7 @@ namespace CEPapi.Controllers
                     return BadRequest("CEP já cadastrado.");
                 }
 
-                var novoCep = new CEP                              
+                var novoCep = new Models.CEP                              
                 {
                     Cep = jsonRetorno.Cep,
                     Logradouro = jsonRetorno.Logradouro,
