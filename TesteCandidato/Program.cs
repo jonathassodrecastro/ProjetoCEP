@@ -110,10 +110,11 @@ namespace ProjetoCEP
                     }
 
                     connection.Close();
+                    reader.Close();
                 }
                 else {
 
-                    
+                    reader.Close();
 
                     query = "INSERT INTO [dbo].[CEP] ([cep], [logradouro], [complemento], [bairro], [localidade], [uf], [unidade], [ibge], [gia]) VALUES (";
                     query = query + "'" + jsonRetorno["cep"] + "'";
@@ -126,16 +127,19 @@ namespace ProjetoCEP
                     query = query + ",'" + jsonRetorno["ibge"] + "'";
                     query = query + ",'" + jsonRetorno["gia"] + "'" + ")";
 
-                    //sqlCommand = new SqlCommand(query, connection);
+                    sqlCommand = new SqlCommand(query, connection);
 
                     sqlCommand.CommandType = CommandType.Text;
 
                     sqlCommand.ExecuteNonQuery();
 
+                    Console.WriteLine(jsonRetorno);
+
                 }
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Ocorreu um erro ao executar o comando SQL: {ex.Message}");
             }
             finally
             {
@@ -148,7 +152,7 @@ namespace ProjetoCEP
             connection.Dispose();
 
 
-            Console.WriteLine(jsonRetorno);
+            
 
             return true;
         }
@@ -199,6 +203,7 @@ namespace ProjetoCEP
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Ocorreu um erro ao executar o comando SQL: {ex.Message}");
             }
             finally
             {
