@@ -5,7 +5,10 @@ using Newtonsoft.Json.Linq;
 using Newtonsoft.Json;
 using System.Net;
 using ProjetoCEP;
+using AutoMapper;
+using System.Runtime.ConstrainedExecution;
 using Microsoft.Data.SqlClient;
+using System.Data;
 
 namespace CEPapi.Controllers
 {
@@ -13,8 +16,12 @@ namespace CEPapi.Controllers
     [ApiController]
     public class CEPControllersController : ControllerBase
     {
-        private readonly Contexto _context;
-        ManipulaCEP manipulaCEP = new ManipulaCEP(); 
+        private Contexto _context;
+        //private IMapper _mapper;
+
+
+
+        ManipulaCEP manipulaCEP = new ManipulaCEP();
 
         public CEPControllersController(Contexto context)
         {
@@ -22,40 +29,39 @@ namespace CEPapi.Controllers
         }
 
         // GET: api/CEPControllers
+        ///<summary>
+        /// Retorna uma lista de todos os CEPs cadastrados no sistema.
+        /// </summary>
+        /// <remarks>
+        /// Este método retorna uma lista de todos os CEPs cadastrados no sistema. Caso não haja CEPs cadastrados, o método retorna uma lista vazia.
+        /// </remarks>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<CEPController>>> GetController()
+        public async Task<ActionResult<IEnumerable<CEP>>> GetController()
         {
-          if (_context.Controller == null)
-          {
-              return NotFound();
-          }
-            return await _context.Controller.ToListAsync();
+            if (_context.CEP == null)
+            {
+                return NotFound();
+            }
+            return await _context.CEP.ToListAsync();
         }
 
-        // GET: api/CEPControllers/5
+        /// <summary>
+        /// Retorna um endereço a partir do CEP informado.
+        /// </summary>
+        /// <remarks>
+        /// O CEP deve ser informado no formato XXXXXXXX apenas com os números.
+        /// </remarks>
         [HttpGet("{Cep}")]
-        public async Task<ActionResult<CEPController>> GetCEPController(string Cep)
+        public async Task<ActionResult<CEP>> GetCEPController(string Cep)
         {
-          if (_context.Controller == null)
-          {
-              return NotFound();
-          }
-            string viaCEPUrl = "https://viacep.com.br/ws/" + Cep + "/json/";
-            string result;
+            if (_context.CEP == null)
+            {
+                return NotFound();
+            }
 
-            WebClient client = new WebClient();
-            result = client.DownloadString(viaCEPUrl);
+            Cep = Cep.Substring(0, 5) + "-" + Cep.Substring(5);
 
-            JObject jsonRetorno = JsonConvert.DeserializeObject<JObject>(ManipulaCEP.trataCaracteres(result, viaCEPUrl));
-
-            string connectionString = _configuration.GetConnectionString("strConn");
-
-
-
-
-
-
-            var cEPController = await _context.Controller.FindAsync(Cep);
+            var cEPController = await _context.CEP.Where(c => c.Cep == Cep).FirstOrDefaultAsync(); ;
 
             if (cEPController == null)
             {
@@ -65,76 +71,87 @@ namespace CEPapi.Controllers
             return cEPController;
         }
 
-        // PUT: api/CEPControllers/5
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPut("{id}")]
-        public async Task<IActionResult> PutCEPController(int id, CEPController cEPController)
+
+        /// <summary>
+        /// Cadastra um endereço a partir do CEP informado.
+        /// </summary>
+        /// <remarks>
+        /// O CEP deve ser informado no formato XXXXXXXX apenas com os números.
+        /// </remarks>
+        [HttpPost("{Cep}")]
+        public async Task<IActionResult> BuscaCEP(string Cep)
         {
-            if (id != cEPController.Id)
-            {
-                return BadRequest();
-            }
-
-            _context.Entry(cEPController).State = EntityState.Modified;
-
             try
             {
+                string viaCEPUrl = "https://viacep.com.br/ws/" + Cep + "/json/";
+
+                WebClient client = new WebClient();
+                string result = client.DownloadString(viaCEPUrl);
+
+                CEP jsonRetorno = JsonConvert.DeserializeObject<CEP>(ManipulaCEP.trataCaracteres(result, viaCEPUrl));
+
+                //var cepExistente = await _context.CEP.FirstOrDefaultAsync(c => c.Cep == jsonRetorno.Cep);
+
+                var cepExistente = await _context.CEP.AnyAsync(c => c.Cep == jsonRetorno.Cep);
+
+                if (cepExistente)
+                {
+                    return BadRequest("CEP já cadastrado.");
+                }
+
+                var novoCep = new CEP                              
+                {
+                    Cep = jsonRetorno.Cep,
+                    Logradouro = jsonRetorno.Logradouro,
+                    Complemento = jsonRetorno.Complemento,
+                    Bairro = jsonRetorno.Bairro,
+                    Localidade = jsonRetorno.Localidade,
+                    Uf = jsonRetorno.Uf,
+                    Unidade = jsonRetorno.Unidade,
+                    Ibge = jsonRetorno.Ibge,
+                    Gia = jsonRetorno.Gia
+                };
+
+                _context.CEP.Add(novoCep);
                 await _context.SaveChangesAsync();
+
+                return Ok("Endereço cadastrado com sucesso.");
+
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                if (!CEPControllerExists(id))
-                {
-                    return NotFound();
-                }
-                else
-                {
-                    throw;
-                }
+
+                return BadRequest("Ocorreu um erro ao buscar o CEP." + ex.Message);
             }
-
-            return NoContent();
         }
 
-        // POST: api/CEPControllers
-        // To protect from overposting attacks, see https://go.microsoft.com/fwlink/?linkid=2123754
-        [HttpPost]
-        public async Task<ActionResult<CEPController>> PostCEPController(CEPController cEPController)
-        {
-          if (_context.Controller == null)
-          {
-              return Problem("Entity set 'Contexto.Controller'  is null.");
-          }
-            _context.Controller.Add(cEPController);
-            await _context.SaveChangesAsync();
 
-            return CreatedAtAction("GetCEPController", new { id = cEPController.Id }, cEPController);
-        }
 
         // DELETE: api/CEPControllers/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteCEPController(int id)
         {
-            if (_context.Controller == null)
+            if (_context.CEP == null)
             {
                 return NotFound();
             }
-            var cEPController = await _context.Controller.FindAsync(id);
+            var cEPController = await _context.CEP.FindAsync(id);
             if (cEPController == null)
             {
                 return NotFound();
             }
 
-            _context.Controller.Remove(cEPController);
+            _context.CEP.Remove(cEPController);
             await _context.SaveChangesAsync();
 
             return NoContent();
         }
 
-        private bool CEPControllerExists(int id)
+        private bool CEPControllerExists(string Cep)
         {
-            return (_context.Controller?.Any(e => e.Id == id)).GetValueOrDefault();
+            return (_context.CEP?.Any(e => e.Cep == Cep)).GetValueOrDefault();
         }
+
 
 
 

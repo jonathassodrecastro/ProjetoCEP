@@ -6,8 +6,10 @@ using System.Data.SqlClient;
 using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Net;
+using System.Runtime.ConstrainedExecution;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
+using System.Threading.Tasks;
 using System.Web;
 
 namespace ProjetoCEP
@@ -230,6 +232,9 @@ namespace ProjetoCEP
 
             return result;
         }
+
+        
+
 
     }
 }

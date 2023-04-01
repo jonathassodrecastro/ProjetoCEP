@@ -10,7 +10,7 @@ namespace CEPapi.Models
         
         }
 
-        public DbSet<CEPController> Controller { get; set; } = null!;    
+        public DbSet<CEP> CEP { get; set; }
 
     }
 }
