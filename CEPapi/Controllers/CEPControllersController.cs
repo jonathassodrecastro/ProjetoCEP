@@ -128,14 +128,16 @@ namespace CEPapi.Controllers
 
 
         // DELETE: api/CEPControllers/5
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteCEPController(int id)
+        [HttpDelete("{Cep}")]
+        public async Task<IActionResult> DeleteCEPController(string Cep)
         {
+            Cep = Cep.Substring(0, 5) + "-" + Cep.Substring(5);
+
             if (_context.CEP == null)
             {
                 return NotFound();
             }
-            var cEPController = await _context.CEP.FindAsync(id);
+            var cEPController = await _context.CEP.FindAsync(Cep);
             if (cEPController == null)
             {
                 return NotFound();
