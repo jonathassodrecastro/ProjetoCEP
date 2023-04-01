@@ -1,6 +1,5 @@
 ﻿/*
-            Bem vindo ao teste de Back-end da e.Mix!
-
+            
             Abaixo está desenvolvido de uma forma bem simples e com alguns erros uma consulta de CEP.
 
             O que esperamos de você neste teste é que faça um novo projeto WEB da forma mais correta, segura e performática na sua avaliação com base no código abaixo.

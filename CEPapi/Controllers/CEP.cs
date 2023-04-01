@@ -71,6 +71,31 @@ namespace CEPapi.Controllers
             return cEPController;
         }
 
+        /// <summary>
+        /// Retorna uma lista de todos os endereços listados com a UF informada
+        /// </summary>
+        /// <remarks>
+        /// Informar apenas duas letras representando o estado. Exemplo: São Paulo - informar SP.
+        /// </remarks>
+        [HttpGet("uf/{Uf}")]
+        public async Task<IActionResult> GetByUF(string Uf)
+        {
+            try
+            {
+                var enderecos = await _context.CEP.Where(e => e.Uf == Uf).ToListAsync();
+
+                if (enderecos == null || enderecos.Count == 0)
+                {
+                    return NotFound();
+                }
+
+                return Ok(enderecos);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Erro ao buscar endereços por UF: {ex.Message}");
+            }
+        }
 
         /// <summary>
         /// Cadastra um endereço a partir do CEP informado.
@@ -115,7 +140,7 @@ namespace CEPapi.Controllers
                 _context.CEP.Add(novoCep);
                 await _context.SaveChangesAsync();
 
-                return Ok("Endereço cadastrado com sucesso.");
+                return Ok($"Endereço cadastrado com sucesso. {novoCep.Cep} - {novoCep.Logradouro}, {novoCep.Bairro} - {novoCep.Localidade}/{novoCep.Uf}");
 
             }
             catch (Exception ex)
@@ -128,26 +153,37 @@ namespace CEPapi.Controllers
 
 
         // DELETE: api/CEPControllers/5
+        ///<summary>
+        /// Apaga do banco todos os endereços com o CEP informado. 
+        /// </summary>
+        /// <remarks>
+        /// Informe o CEP no formato XXXXXXXX sem hífen. Caso não haja CEPs cadastrados, o método retorna uma lista vazia.
+        /// </remarks>
         [HttpDelete("{Cep}")]
-        public async Task<IActionResult> DeleteCEPController(string Cep)
+        public async Task<IActionResult> Delete(string Cep)
         {
             Cep = Cep.Substring(0, 5) + "-" + Cep.Substring(5);
-
-            if (_context.CEP == null)
+            try
             {
-                return NotFound();
+                var cepToDelete = await _context.CEP.Where(c => c.Cep == Cep).FirstOrDefaultAsync();
+                if (cepToDelete == null)
+                {
+                    return NotFound();
+                }
+
+                _context.CEP.Remove(cepToDelete);
+                await _context.SaveChangesAsync();
+
+                return Ok(cepToDelete);
             }
-            var cEPController = await _context.CEP.FindAsync(Cep);
-            if (cEPController == null)
+            catch (Exception ex)
             {
-                return NotFound();
+                return BadRequest(ex.Message);
             }
-
-            _context.CEP.Remove(cEPController);
-            await _context.SaveChangesAsync();
-
-            return NoContent();
         }
+
+        
+
 
         private bool CEPControllerExists(string Cep)
         {
