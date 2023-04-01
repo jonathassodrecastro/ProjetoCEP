@@ -103,7 +103,7 @@ namespace ProjetoCEP
                         string logradouro = reader.GetString(reader.GetOrdinal("logradouro"));
                         string bairro = reader.GetString(reader.GetOrdinal("bairro"));
                         string cidade = reader.GetString(reader.GetOrdinal("localidade"));
-                        string estado = reader.GetString(reader.GetOrdinal("estado"));
+                        string estado = reader.GetString(reader.GetOrdinal("uf"));
 
                         endereco = $"Endereço cadastrado anteriormente: CEP:{cep} - {logradouro} - {bairro} - {cidade}/{estado}";
                         Console.WriteLine(endereco);
